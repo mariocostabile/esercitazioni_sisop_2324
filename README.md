@@ -1,1 +1,1 @@
-# esercitazioni_sisop_2324
+# raccolta esercitazioni di sistemi operativi 
