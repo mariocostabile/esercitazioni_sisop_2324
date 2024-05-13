@@ -1,1 +1,1 @@
-# raccolta esercitazioni di sistemi operativi 
+# Raccolta esercitazioni di sistemi operativi 
