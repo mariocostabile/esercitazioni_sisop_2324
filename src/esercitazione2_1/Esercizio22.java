@@ -14,10 +14,7 @@ public class Esercizio22 extends Thread{
 	}
 	
 	public static void main(String[] args) {
-			while(true) {
-				new Esercizio22("0").start();
-				new Esercizio22("1").start();
-				System.out.println();
-			}
+		new Esercizio22("0").start();
+		new Esercizio22("1").start();
 	}
 }
