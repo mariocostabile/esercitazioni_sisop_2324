@@ -3,8 +3,9 @@ package esercitazione3;
 public class ContoCorrenteTest {
 	public static void main(String[] args) throws InterruptedException{
 		int depositoIniziale = 100000;
-		//ContoCorrente cc = new ContoCorrenteNTS(depositoIniziale);
-		ContoCorrente cc = new ContoCorrenteAI(depositoIniziale);
+		//ContoCorrente cc = new ContoCorrenteNTS(depositoIniziale); //test non thread safe
+		//ContoCorrente cc = new ContoCorrenteAI(depositoIniziale);  //test atomic integer
+		ContoCorrente cc = new ContoCorrenteSem(depositoIniziale);   //test semafori
 		int numCorrentisti = 200;
 		int importo = 100;
 		int numOperazioni = 5000;
