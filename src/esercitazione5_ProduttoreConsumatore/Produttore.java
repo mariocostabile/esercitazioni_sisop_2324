@@ -1,4 +1,4 @@
-package esercitazione5;
+package esercitazione5_ProduttoreConsumatore;
 
 import java.nio.channels.InterruptedByTimeoutException;
 import java.sql.Time;
