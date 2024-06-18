@@ -1,6 +1,8 @@
 package appelli;
 
-public class Prova3_20231110 {
+import java.util.concurrent.*;
+
+public class Prova3_20230320 {
     public static void main(String[] args) {
         int n = 10;
         MyThread[] threads = new MyThread[n];
@@ -22,16 +24,19 @@ public class Prova3_20231110 {
         @Override
         public void run() {
             try {
-                int p = threads.length - id - 1;
-                if (p >= threads.length / 2) {
-                    threads[p].join();
+                int p = id - 1;
+                if (p >= 0)
+                TimeUnit.SECONDS.sleep(id);
+                int milli = id *100;
+                sleep(milli);
+                if (p >= 0)
                     System.out.printf("Thread-%d Thread-%d %s\n", id, p, threads[p].getState());
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+                else
+                    System.out.printf("Thread-%d\n", id);
+            } catch (Exception e) { e.printStackTrace(); }
         }
     }
 }
+
 
 
