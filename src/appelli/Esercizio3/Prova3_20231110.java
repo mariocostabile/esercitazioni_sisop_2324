@@ -1,4 +1,4 @@
-package appelli;
+package appelli.Esercizio3;
 
 public class Prova3_20231110 {
     public static void main(String[] args) {

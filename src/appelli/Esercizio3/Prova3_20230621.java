@@ -1,4 +1,4 @@
-package appelli;
+package appelli.Esercizio3;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
