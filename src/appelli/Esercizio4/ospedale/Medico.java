@@ -8,11 +8,11 @@ public class Medico extends Thread {
 	}
 	
 	public void run() {
-		try {
-			while(true) {
+		while(true) {
+			try {
 				ps.iniziaVisita();
 				ps.terminaVisita();
-			}
-		}catch(InterruptedException e) {}
+			}catch(InterruptedException e) {}
+		}
 	}
 }

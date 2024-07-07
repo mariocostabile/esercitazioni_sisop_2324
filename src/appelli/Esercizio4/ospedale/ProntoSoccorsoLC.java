@@ -6,6 +6,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.*;
 
 public class ProntoSoccorsoLC extends ProntoSoccorso{
+	/*
+	 * le condition potrebbero non essere come le abbiamo pensate perché 
+	 * fare qualche test ne abbiamo aggiunto una e le abbiamo cambiate un po'
+	 */
 	
 	private LinkedList<Thread> postoVisita= new LinkedList<Thread>();
 	//la lista dei pazienti arriva da sopra 
@@ -13,29 +17,40 @@ public class ProntoSoccorsoLC extends ProntoSoccorso{
 	private Random tempoAttesa = new Random();
 	private Lock l = new ReentrantLock();
 	private Condition permettiVisita = l.newCondition();
+	private Condition permettiEntrata = l.newCondition();
+	//permetti terminazione
 	//private Condition permettiTerminazione = l.newCondition();
 	
-	public ProntoSoccorsoLC(Medico medico) {
-		super(medico);
+	public ProntoSoccorsoLC(int numVerdi, int numGialli, int numRossi) {
+		super(numVerdi, numGialli, numRossi);
 	}
 
-	@Override
+	@Override //medico
 	public void iniziaVisita() throws InterruptedException {
 		l.lock();
 		try {
-			while(!libero()) {
-				permettiVisita.await(); 
-			}//la signal fa partire da qua 
+			while(libero())
+				permettiVisita.await();
+			//la signal fa partire da qua 
 			String codice = ((Paziente) postoVisita.getFirst()).getCodice();
+			System.out.printf("Il medico %s ha inziato la visita.", Thread.currentThread());
+			System.out.println();
 			visita(codice);
 		} finally {
 			l.unlock();
 		}
 	}
 
-	@Override
+	@Override //medico
 	public void terminaVisita() throws InterruptedException{
-		permettiVisita.signalAll();
+		l.lock();
+		try {
+			//segnalare esci paziente
+			System.out.printf("Il medico %s ha terminato la visita.", Thread.currentThread());
+			System.out.println();
+		} finally {
+			l.unlock();
+		}
 	}
 
 	@Override
@@ -43,7 +58,7 @@ public class ProntoSoccorsoLC extends ProntoSoccorso{
 		l.lock();
 		try {
 			while(!libero())
-				permettiVisita.await();
+				permettiEntrata.await();
 			Paziente p = ((Paziente)(Thread.currentThread()));
 			if( p==giallo.getFirst() && p.getContatoreGiallo()>=5 ) {
 				postoVisita.add(p);
@@ -61,10 +76,13 @@ public class ProntoSoccorsoLC extends ProntoSoccorso{
 				postoVisita.add(p);
 				verde.removeFirst();
 			}
-			if(giallo.size()>0) {
+			if(giallo.size()>0) {//aggiornare il contatore di tutti i gialli 
 				Paziente g = ((Paziente)giallo.getFirst());
 				g.setContatoreGiallo();
 			}
+			permettiVisita.signal();
+			System.out.printf("Il paziente %s ha inziato la visita.", Thread.currentThread());
+			System.out.println();
 		} finally {
 			l.unlock();
 		}
@@ -82,9 +100,15 @@ public class ProntoSoccorsoLC extends ProntoSoccorso{
 
 	@Override
 	public void esciPaziente() {
-		postoVisita.remove();
-		permettiVisita.signalAll();
-		
+		l.lock();
+		try {//permetti terminazione
+			postoVisita.remove();
+			System.out.printf("Il paziente %s ha terminato la visita.", Thread.currentThread());
+			System.out.println();
+			permettiEntrata.signalAll();
+		} finally {
+			l.unlock();
+		}
 	}
 	
 	private boolean libero() {
@@ -93,10 +117,18 @@ public class ProntoSoccorsoLC extends ProntoSoccorso{
 
 	private void visita(String codice) {
 		try {
-			if(codice.equals(verde)) TimeUnit.SECONDS.sleep(tempoAttesa.nextInt(15-10+1)+10);
-			if(codice.equals(giallo)) TimeUnit.SECONDS.sleep(tempoAttesa.nextInt(20-15+1)+15);
-			if(codice.equals(rosso)) TimeUnit.SECONDS.sleep(tempoAttesa.nextInt(40-20+1)+20);
+			if(codice.equals("verde")) TimeUnit.SECONDS.sleep(tempoAttesa.nextInt(15-10+1)+10);
+			if(codice.equals("giallo")) TimeUnit.SECONDS.sleep(tempoAttesa.nextInt(20-15+1)+15);
+			if(codice.equals("rosso")) TimeUnit.SECONDS.sleep(tempoAttesa.nextInt(40-20+1)+20);
 		} catch (InterruptedException e) {}	
+	}
+	
+	public static void main(String[] args) {
+		ProntoSoccorsoLC psLC = new ProntoSoccorsoLC(10, 10, 10);
+		Medico m = new Medico(psLC);
+		m.setDaemon(true);
+		m.start();
+		psLC.test();
 	}
 	
 }
