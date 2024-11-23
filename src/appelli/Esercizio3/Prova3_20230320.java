@@ -26,9 +26,8 @@ public class Prova3_20230320 {
             try {
                 int p = id - 1;
                 if (p >= 0)
-                TimeUnit.SECONDS.sleep(id);
-                int milli = id *100;
-                sleep(milli);
+                	threads[p].join();
+                TimeUnit.MILLISECONDS.sleep(id);
                 if (p >= 0)
                     System.out.printf("Thread-%d Thread-%d %s\n", id, p, threads[p].getState());
                 else

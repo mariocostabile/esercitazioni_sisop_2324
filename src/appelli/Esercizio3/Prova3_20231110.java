@@ -1,7 +1,7 @@
 package appelli.Esercizio3;
 
 public class Prova3_20231110 {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         int n = 10;
         MyThread[] threads = new MyThread[n];
         for (int i = 0; i < n; i++)

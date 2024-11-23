@@ -4,29 +4,26 @@ import java.util.LinkedList;
 
 public abstract class UfficioPostale {
 	
-	protected LinkedList<Cliente> codaClientiA= new LinkedList<>();
-	protected LinkedList<Cliente> codaClientiB= new LinkedList<>();
-	protected LinkedList<Cliente> codaClientiC= new LinkedList<>();
-	protected LinkedList<Cliente> codaTicket= new LinkedList<>(); //in coda per il ticket
+	protected LinkedList<Cliente> filaA = new LinkedList<>();
+	protected LinkedList<Cliente> filaB = new LinkedList<>();
+	protected LinkedList<Cliente> filaC = new LinkedList<>();
+	protected int ticketA=50;
+	protected int ticketB=50;
+	protected int ticketC=50;
+	protected int numClienti;
 	
-	public UfficioPostale(LinkedList<Cliente> codaClientiA, LinkedList<Cliente> codaClientiB,
-			LinkedList<Cliente> codaClientiC, LinkedList<Cliente> codaTicket) {
-		super();
-		this.codaClientiA = codaClientiA;
-		this.codaClientiB = codaClientiB;
-		this.codaClientiC = codaClientiC;
-		this.codaTicket = codaTicket;
+	
+	public UfficioPostale(int numClienti) {
+		this.numClienti=numClienti;
 	}
 	
-	public abstract boolean ritiraTicket( String operazione );
-	public abstract void attendiSportello( String operazione ) throws InterruptedException;
-	public abstract void prossimoCliente() throws InterruptedException; //impiegato
-	public abstract void eseguiOperazione() throws InterruptedException; //impiegato
+	public abstract boolean ritiraTicket(String operazione) throws InterruptedException;
 	
-	public void test() {
-		//TODO
-		//Inizializza i thread e fa start con 2 for 
-		//rimepie codaTicket
-	}
+	public abstract void attendiSportello(String operazione) throws InterruptedException;
+	
+	public abstract void prossimoCliente() throws InterruptedException;
+	
+	public abstract void eseguiOperazione() throws InterruptedException;
+	
 	
 }

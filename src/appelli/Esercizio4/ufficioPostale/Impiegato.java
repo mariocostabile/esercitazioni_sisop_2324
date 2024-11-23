@@ -4,25 +4,22 @@ import java.util.LinkedList;
 
 public class Impiegato extends Thread{
 	
-	private UfficioPostale uf;
-	private String operazione;
+	private UfficioPostale uffpost;
+	private String tipoOP;
 	
-	public Impiegato(UfficioPostale uf, String operazione) {
-		this.uf=uf;
-		this.operazione=operazione;
+	public Impiegato(UfficioPostale uffpost, String tipoOP) {
+		this.uffpost=uffpost;
+		this.tipoOP=tipoOP;
+	}
+	
+	public void run() {
+		try {
+			uffpost.prossimoCliente();
+			uffpost.eseguiOperazione();
+		}catch(InterruptedException e) {}
 	}
 	
 	public String getOperazione() {
-		return operazione;
-	}
-	
-	@Override
-	public void run() {
-		try {
-			while(true) {
-				uf.prossimoCliente();
-				uf.eseguiOperazione();
-			}
-		} catch (Exception e) {	}
+		return tipoOP;
 	}
 }

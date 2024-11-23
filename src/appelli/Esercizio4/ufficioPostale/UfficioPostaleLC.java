@@ -7,33 +7,37 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class UfficioPostaleLC extends UfficioPostale {
 	
-	private int countA, countB, countC; //servono per il metodo possoInserire per la condition
-	private boolean liberoA, liberoB, liberoC, liberoNigro; //ultima è un tributo
-	
+	private LinkedList<Cliente> attesaTicket = new LinkedList<>();
+	private LinkedList<Cliente> attesaFila = new LinkedList<>();
 	private Lock l = new ReentrantLock();
-	private Condition condition = l.newCondition();
+	private Condition possoRitirare = l.newCondition(); 
+	private Condition possoInFila = l.newCondition();
+	private Condition possoProssimoCliente = l.newCondition();
 	
-	public UfficioPostaleLC(LinkedList<Cliente> codaClientiA, LinkedList<Cliente> codaClientiB,
-			LinkedList<Cliente> codaClientiC, LinkedList<Cliente> codaTicket) {
-		super(codaClientiA, codaClientiB, codaClientiC, codaTicket);
+	public UfficioPostaleLC(int numeroClienti) {
+		super(numeroClienti);
 	}
 
 	@Override
-	public boolean ritiraTicket(String operazione){
+	public boolean ritiraTicket(String operazione) throws InterruptedException {
 		l.lock();
 		try {
-			if(!possoInserire()) {
+			Cliente curr= (Cliente)Thread.currentThread();
+			attesaTicket.add(curr);
+			while(!possoTicket(operazione,curr))
+				possoRitirare.await();
+			if(curr.getRitirato()) {
+				attesaTicket.remove(curr);
+				attesaFila.add(curr);
+				decrementaTicket(operazione);
+				possoRitirare.signalAll();
+				possoInFila.signalAll();
+				return true;
+			}else {
+				attesaTicket.remove(curr);
 				return false;
 			}
-//			if(operazione.equals("A") && c.getOperazione().equals("A")) {
-//				codaClientiA.add(c);
-//				countA++;
-//			}
-			if(operazione.equals("A")) countA++;
-			if(operazione.equals("B")) countB++;
-			if(operazione.equals("C")) countC++;
-			return true;
-		} finally {
+		}finally {
 			l.unlock();
 		}
 	}
@@ -41,114 +45,92 @@ public class UfficioPostaleLC extends UfficioPostale {
 	@Override
 	public void attendiSportello(String operazione) throws InterruptedException {
 		l.lock();
-		Cliente c = codaTicket.removeFirst();
-		if(operazione.equals("A") && c.getOperazione().equals("A")) {
-			codaClientiA.add(c);
-		}
-		if(operazione.equals("B") && c.getOperazione().equals("B")) {
-			codaClientiB.add(c);
-		}
-		if(operazione.equals("C") && c.getOperazione().equals("C")) {
-			codaClientiC.add(c);
-		}	
 		try {
-			while(!libero()) {
-				condition.await();
-			}
-			
-		} finally {
+			Cliente curr = (Cliente)Thread.currentThread();
+			while(!possoAndareInFila(curr))
+				possoInFila.await();
+			attesaFila.remove(curr);
+			vaiInFila(operazione, curr);
+			possoProssimoCliente.signalAll();
+		}finally {
 			l.unlock();
 		}
+		
 	}
 
 	@Override
 	public void prossimoCliente() throws InterruptedException {
 		l.lock();
 		try {
-			condition.signalAll();
-		}finally {
+//			Impiegato curr = (Impiegato)Thread.currentThread();
+//			String op = curr.getOperazione();
+//			while(!possoServire(curr,op))
+//				possoProssimoCliente.await();
+//			rimuoviDallaFila(op);
+//			possoEseguire.signal
+		} finally {
 			l.unlock();
 		}
+		
 	}
 
 	@Override
-	public void eseguiOperazione() {
-		 try {
-            String operazione = ((Impiegato) Thread.currentThread()).getOperazione();
-            LinkedList<Cliente> coda;
-            switch (operazione) {
-                case "A":
-                    coda = codaClientiA;
-                    break;
-                case "B":
-                    coda = codaClientiB;
-                    break;
-                case "C":
-                    coda = codaClientiC;
-                    break;
-                default:
-                    throw new IllegalArgumentException("Operazione non valida");
-            }
-            Cliente cliente = coda.poll();
-            if (cliente != null) {
-                try {
-                    switch (operazione) {
-                        case "A":
-                            Thread.sleep(300);
-                            break;
-                        case "B":
-                            Thread.sleep(500);
-                            break;
-                        case "C":
-                            Thread.sleep(700);
-                            break;
-                    }
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                condition.signalAll();
-            }
-        } finally {
-            l.unlock();
-        }
-   }
-
-	
-	private boolean possoInserire() {
-		if(countA>=50 || countB>=50 || countC>=50) return false;
-		return true;
+	public void eseguiOperazione() throws InterruptedException {
+		// TODO Auto-generated method stub
+		
 	}
 	
-	private boolean libero() {
-		return liberoA || liberoB || liberoC;
+	private boolean possoTicket(String op, Cliente c) {
+		if(c==attesaTicket.getFirst()) {
+			if(op.equals("A") && ticketA>0) {
+				c.setRitirato();
+				return true;
+			}	
+			if(op.equals("B")&& ticketB>0) {
+				c.setRitirato();
+				return true;
+			}
+			if(op.equals("C") && ticketC>0) {
+				c.setRitirato();
+				return true;
+			}
+		}
+		return false;
 	}
 	
-	 public static void main(String[] args) {
-			LinkedList<Cliente> codaClientiA= new LinkedList<>();
-			LinkedList<Cliente> codaClientiB= new LinkedList<>();
-			LinkedList<Cliente> codaClientiC= new LinkedList<>();
-			LinkedList<Cliente> codaTicket= new LinkedList<>(); //in coda per il ticket
-			
-	        UfficioPostaleLC ufficioPostale = new UfficioPostaleLC(codaClientiA, codaClientiB, codaClientiC, codaTicket);
-
-	        Impiegato impiegatoA = new Impiegato(ufficioPostale, "A");
-	        Impiegato impiegatoB = new Impiegato(ufficioPostale, "B");
-	        Impiegato impiegatoC = new Impiegato(ufficioPostale, "C");
-
-	        impiegatoA.start();
-	        impiegatoB.start();
-	        impiegatoC.start();
-	        
-	        for (int i = 0; i < 200; i++) {
-	            String[] operazioni = {"A", "B", "C"};
-	            String operazione = operazioni[i % 3];
-	            Cliente cliente = new Cliente(ufficioPostale, operazione);
-	            cliente.start();
-	            try {
-	                Thread.sleep(100); // Simula un ritardo tra l'arrivo dei clienti
-	            } catch (InterruptedException e) {
-	                e.printStackTrace();
-	            }
-	        }
-	 }
+	private void decrementaTicket(String op){
+		if(op.equals("A"))
+			ticketA--;
+		if(op.equals("B"))
+			ticketB--;
+		if(op.equals("C"))
+			ticketC--;
+	}
+	
+	private boolean possoAndareInFila(Cliente c) {
+		if(c==attesaFila.getFirst() && c.getRitirato()) {
+			return true;
+		}
+		return false;
+	}
+	
+	private void vaiInFila(String op, Cliente c) {
+		if(op.equals("A"))
+			filaA.add(c);
+		if(op.equals("B"))
+			filaB.add(c);
+		if(op.equals("C"))
+			filaC.add(c);
+	}
+	
+	private boolean possoServire(Impiegato imp, String op) {
+		if(op.equals("A") && !filaA.isEmpty())
+			return true;
+		if(op.equals("B") && !filaB.isEmpty())
+			return true;
+		if(op.equals("C") && !filaC.isEmpty())
+			return true;
+		return false;
+	}
+	
 }

@@ -2,25 +2,32 @@ package appelli.Esercizio4.ufficioPostale;
 
 public class Cliente extends Thread{
 	
-	private UfficioPostale uf;
-	private String operazione;
+	private UfficioPostale uffpost;
+	private String tipoOP;
+	private boolean ritirato=false;
 	
-	public Cliente(UfficioPostale uf, String operazione) {
-		this.uf=uf;
-		this.operazione=operazione;
+	public Cliente(UfficioPostale uffpost, String tipoOP) {
+		this.uffpost=uffpost;
+		this.tipoOP=tipoOP;
+	}
+	
+	public void run() {
+		try {
+			boolean flag = uffpost.ritiraTicket(tipoOP);
+			if(flag)
+				uffpost.attendiSportello(tipoOP);
+		}catch(InterruptedException e) {}
 	}
 	
 	public String getOperazione() {
-		return operazione;
+		return tipoOP;
 	}
 	
-	@Override
-	public void run() {
-		try {
-			while(true) {
-				uf.ritiraTicket(operazione);
-				uf.attendiSportello(operazione);
-			}
-		} catch (Exception e) {	}
+	public void setRitirato() {
+		ritirato=true;
+	}
+	
+	public boolean getRitirato() {
+		return ritirato;
 	}
 }
